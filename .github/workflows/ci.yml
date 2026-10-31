@@ -1,0 +1,33 @@
+name: backend-ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_DB: vuna_test, POSTGRES_USER: vuna, POSTGRES_PASSWORD: vuna }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U vuna -d vuna_test"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: "pip" }
+      - run: pip install -r requirements.txt
+      - run: python manage.py check
+        env:
+          DJANGO_SECRET_KEY: ci-only-secret
+          DJANGO_DEBUG: "True"
+          DATABASE_URL: postgres://vuna:vuna@localhost:5432/vuna_test
+      - run: python manage.py migrate --run-syncdb
+        env:
+          DJANGO_SECRET_KEY: ci-only-secret
+          DJANGO_DEBUG: "True"
+          DATABASE_URL: postgres://vuna:vuna@localhost:5432/vuna_test
+      - run: pytest
+        env:
+          DJANGO_SECRET_KEY: ci-only-secret
+          DJANGO_DEBUG: "True"
+          DATABASE_URL: postgres://vuna:vuna@localhost:5432/vuna_test

@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import {
-  Activity, ArrowDownRight, ArrowUpRight, Award, Bell, BookOpen, Building2,
+  Activity, Award, Bell, BookOpen, Building2,
   CalendarCheck, CheckCircle2, ChevronDown, CircleHelp, ClipboardList, Clock3,
   CreditCard, FileText, GraduationCap, LayoutDashboard, LogOut, Menu, MoreHorizontal,
   Network, Plus, Search, Settings, ShieldCheck, Users, UserPlus, X, RefreshCw
@@ -341,7 +341,7 @@ export default function App() {
   );
 }
 
-function Metric({icon,label,value,note,tone}:{icon:React.ReactNode;label:string;value:number|null;note:string;tone:string}) {
+function Metric({icon,label,value,note,tone}:{icon:ReactNode;label:string;value:number|null;note:string;tone:string}) {
   return <div className="metric-card"><div className={`metric-icon ${tone}`}>{icon}</div><div className="metric-label">{label}</div><div className="metric-value">{value===null?"—":value.toLocaleString()}</div><div className="metric-note">{note}</div></div>;
 }
 function StudentTable({students,compact=false}:{students:Student[];compact?:boolean}) {

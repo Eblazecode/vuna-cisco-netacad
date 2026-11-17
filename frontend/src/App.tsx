@@ -270,7 +270,7 @@ export default function App() {
               {authMode === "login" ? <>New to the portal? <button onClick={() => {setError("");setNotice("");setAuthMode("registration");}}>Start student registration</button></> :
               <>Already have an account? <button onClick={() => {setError("");setAuthMode("login");}}>Sign in</button></>}
             </div>
-            <div className="security-note"><Lock size={14}/> Your information is protected by university access controls.</div>
+            <div className="security-note"><ShieldCheck size={14}/> Your information is protected by university access controls.</div>
             {!API_BASE && <div className="config-message">API connection not configured. Set <code>VITE_API_BASE_URL</code> to the Django API address to enable sign-in and registration.</div>}
           </div>
         </section>

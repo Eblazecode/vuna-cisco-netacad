@@ -4,31 +4,29 @@
 
 - Django REST Framework remains the backend API and source of business rules.
 - Supabase provides managed PostgreSQL. Keep the connection string server-side.
-- Vercel hosts the React/TypeScript frontend when that application is introduced.
+- Vercel hosts the React/TypeScript frontend and a separate Django API project.
 - Do not expose the Supabase database password, service-role key or Django secret to the browser.
 
 ## Supabase database
 
-The project reference configured for this application is `amlykkrdayvujdznurat` (project URL: `https://amlykkrdayvujdznurat.supabase.co`). The project was found in the account but reported as inactive during initial integration checks. Restore it in the Supabase dashboard before applying migrations or connecting the API.
+The project reference configured for this application is `amlykkrdayvujdznurat` (project URL: `https://amlykkrdayvujdznurat.supabase.co`). A restore was requested for the existing project. Confirm the project reports `ACTIVE_HEALTHY` before applying migrations or connecting the API.
 
-For Django's persistent database sessions, select the Supabase **Session pooler** connection string (port 5432) from Project > Connect. Add `?sslmode=require` if it is not already present. If the project network supports IPv6 or an IPv4 add-on is enabled, a direct connection may also be used. Do not use transaction pooler mode for Django's normal persistent ORM connections.
+Copy the exact Supabase **Session pooler** connection string (port 5432) from Project > Connect. Replace the password placeholder, URL-encode reserved password characters, and include `?sslmode=require`. Do not construct the pooler hostname or username manually.
 
 Set `DATABASE_URL` as an encrypted environment variable in the backend hosting environment. Never commit a real URL or password.
 
 ## Vercel
 
-The existing Vercel project is `vuna-cisco-netacad`. Its current deployment is connected to the GitHub repository and reports READY, but the repository currently contains a Django API rather than a frontend application. Vercel is therefore not yet the production host for the Django API.
+Two Vercel projects are connected to this GitHub repository:
 
-When `frontend/` is introduced:
-1. Configure the Vercel project's Root Directory to `frontend`.
-2. Use the framework preset matching the frontend (Vite or Next.js as selected by the frontend implementation).
-3. Add only public client-side configuration to `VITE_*` or `NEXT_PUBLIC_*` variables.
-4. Add a rewrite or server-side proxy for API calls to the separately hosted Django API.
-5. Configure allowed origins and CSRF trusted origins on Django.
+1. `vuna-cisco-netacad` — Root Directory `frontend`, framework Vite.
+2. `vuna-cisco-netacad-api` — repository root, Django framework/runtime.
+
+Vercel's Django support detects `manage.py` and discovers the WSGI/ASGI entry point from Django settings. The frontend and API are built and deployed independently. The frontend uses `VITE_API_BASE_URL` to reach the API. Configure CORS and CSRF trusted origins to the exact frontend HTTPS origins.
 
 ## Django API hosting
 
-Deploy the Django container to an institution-approved container host. Configure:
+Deploy the Django API through the `vuna-cisco-netacad-api` Vercel project. Configure:
 - `DJANGO_SECRET_KEY` (unique random secret)
 - `DJANGO_DEBUG=False`
 - `DJANGO_ALLOWED_HOSTS`
@@ -39,10 +37,12 @@ Deploy the Django container to an institution-approved container host. Configure
 
 Run committed Django migrations as a release step. Do not use `migrate --run-syncdb` as the production schema-management strategy.
 
+The Django settings reject non-debug deployments without `DATABASE_URL`; this prevents accidental production use of ephemeral SQLite.
+
 ## Readiness checks
 
 - Restore the Supabase project and confirm database connectivity.
 - Apply and verify committed migrations.
 - Run Django system checks and full tests against PostgreSQL.
-- Add Vercel frontend after the frontend project exists.
+- Set `VITE_API_BASE_URL` in the frontend Vercel project after the API has a verified HTTPS origin.
 - Run role/scope tests, security review, backup/restore test and institutional UAT before student onboarding.

@@ -1,6 +1,6 @@
-# VUNA Cisco NetAcad 2.0 — Backend foundation
+# VUNA Cisco NetAcad
 
-A clean Django REST Framework implementation baseline for the Veritas University Student Management and Cisco Networking Academy Management System. This repository is being rebuilt against the approved SRS; it is not a continuation of the earlier Floot prototype.
+University-wide student and professional academy management portal for Veritas University, Abuja. The product uses a React/TypeScript frontend, Django REST API and Supabase-managed PostgreSQL.
 
 ## Architecture decisions
 
@@ -10,7 +10,7 @@ A clean Django REST Framework implementation baseline for the Veritas University
 - **Authentication:** Custom email-based Django user, short-lived JWT access tokens and rotating refresh tokens.
 - **Background work:** Celery + Redis (configured; task modules are added with the relevant feature phases).
 - **API documentation:** OpenAPI schema and Swagger UI via drf-spectacular.
-- **Deployment baseline:** Container-ready Django API; Vercel hosts the frontend when added. Supabase provides managed PostgreSQL and optional private object storage.
+- **Deployment:** Separate Vercel projects for the Vite frontend and Django API; Supabase provides managed PostgreSQL.
 
 ## Current implementation status
 
@@ -53,7 +53,6 @@ pip install -r requirements.txt
 cp .env.example .env
 # Start PostgreSQL and Redis, then configure DATABASE_URL and REDIS_URL in .env.
 python manage.py check
-python manage.py makemigrations accounts academics students audit
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
@@ -88,8 +87,16 @@ All management endpoints require an authenticated, authorised account. The initi
 6. Do not publish Cisco programme names/certification mappings until validated against the current authorised Cisco Networking Academy catalogue.
 7. Do not place real student data, secrets, payment credentials or production database dumps in Git.
 
+## Deployment
+
+- Frontend Vercel project: `vuna-cisco-netacad`, Root Directory `frontend`.
+- API Vercel project: `vuna-cisco-netacad-api`, repository root.
+- Supabase project: `vuna-cisco-netacad`.
+
+Set `DATABASE_URL` only in the API project's sensitive environment variables. Set `VITE_API_BASE_URL` in the frontend after the API URL is deployed. The frontend must never receive database credentials or Django signing secrets.
+
 ## Security note
 
 The project is a development baseline, not a production-certified system. Use a strong secret, HTTPS, managed PostgreSQL with encrypted backups, restricted staff accounts, MFA for privileged roles, secure object storage, audit retention, tested recovery, and an institutional privacy impact assessment before onboarding real students.
 
-**Migration generation note:** This source snapshot does not contain generated Django migration files yet. After installing dependencies, run `python manage.py makemigrations accounts academics students audit` and commit the generated migration files, then use `python manage.py migrate`. Do not rely on `--run-syncdb` for a production release.
+Initial migrations are committed for the `accounts`, `academics`, `students` and `audit` apps. Apply them with `python manage.py migrate`; do not use `--run-syncdb` as a substitute for migrations.

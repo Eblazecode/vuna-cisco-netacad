@@ -21,7 +21,7 @@ jobs:
           DJANGO_SECRET_KEY: ci-only-secret
           DJANGO_DEBUG: "True"
           DATABASE_URL: postgres://vuna:vuna@localhost:5432/vuna_test
-      - run: python manage.py migrate --run-syncdb
+      - run: python manage.py migrate
         env:
           DJANGO_SECRET_KEY: ci-only-secret
           DJANGO_DEBUG: "True"

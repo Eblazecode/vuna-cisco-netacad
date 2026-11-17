@@ -1,12 +1,15 @@
 from datetime import timedelta
 from pathlib import Path
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(DEBUG=(bool, False))
 environ.Env.read_env(BASE_DIR / ".env")
-SECRET_KEY = env("DJANGO_SECRET_KEY", default="unsafe-dev-key-change-before-deployment")
 DEBUG = env.bool("DJANGO_DEBUG", default=False)
+SECRET_KEY = env("DJANGO_SECRET_KEY", default="unsafe-dev-key-change-before-deployment")
+if not DEBUG and SECRET_KEY == "unsafe-dev-key-change-before-deployment":
+    raise ImproperlyConfigured("Set a unique DJANGO_SECRET_KEY in every non-debug environment.")
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
 INSTALLED_APPS = [
@@ -27,7 +30,13 @@ TEMPLATES = [{"BACKEND": "django.template.backends.django.DjangoTemplates", "DIR
               "OPTIONS": {"context_processors": ["django.template.context_processors.request", "django.contrib.auth.context_processors.auth", "django.contrib.messages.context_processors.messages"]}}]
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
-DATABASES = {"default": env.db("DATABASE_URL", default="sqlite:///db.sqlite3")}
+database_url = env("DATABASE_URL", default=None)
+if database_url:
+    DATABASES = {"default": environ.Env.db_url_config(database_url)}
+elif DEBUG:
+    DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}}
+else:
+    raise ImproperlyConfigured("DATABASE_URL is required when DJANGO_DEBUG=False. Configure managed PostgreSQL before deployment.")
 AUTH_USER_MODEL = "accounts.User"
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -66,6 +75,7 @@ X_FRAME_OPTIONS = "DENY"
 SECURE_REFERRER_POLICY = "same-origin"
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000

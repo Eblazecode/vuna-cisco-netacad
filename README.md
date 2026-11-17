@@ -6,11 +6,11 @@ A clean Django REST Framework implementation baseline for the Veritas University
 
 - **Pattern:** API-first modular monolith.
 - **Backend:** Python 3.12+, Django 5.2, Django REST Framework.
-- **Database:** PostgreSQL 17.
+- **Database:** Supabase-managed PostgreSQL 17 (Django ORM remains the source of business logic; Supabase Auth/Data API are not enabled as a competing identity layer).
 - **Authentication:** Custom email-based Django user, short-lived JWT access tokens and rotating refresh tokens.
 - **Background work:** Celery + Redis (configured; task modules are added with the relevant feature phases).
 - **API documentation:** OpenAPI schema and Swagger UI via drf-spectacular.
-- **Deployment baseline:** Container-ready; production deployment target to be selected after institutional infrastructure/security review.
+- **Deployment baseline:** Container-ready Django API; Vercel hosts the frontend when added. Supabase provides managed PostgreSQL and optional private object storage.
 
 ## Current implementation status
 
